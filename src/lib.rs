@@ -31,6 +31,15 @@ struct AllQuotes {
     quotes: Vec<Quote>,
 }
 
+impl Quote {
+    pub fn print_quote(&self) -> String {
+        if self.author != "" {
+            return format!("{} - {}", self.quote, self.author);
+        }
+        format!("{}", self.quote)
+    }
+}
+
 fn print_quote_json(contents: &str) {
     let all_quotes: AllQuotes = serde_json::from_str(contents).unwrap();
 
@@ -42,7 +51,7 @@ fn print_quote_json(contents: &str) {
     //     }
     // }
     let mut rng = rand::thread_rng();
-    println!("{:?}", quotes[rng.gen_range(0..quotes.len())].quote);
+    println!("{:?}", quotes[rng.gen_range(0..quotes.len())].print_quote());
 
 }
 
@@ -53,4 +62,3 @@ pub fn run(config: Config) -> Result<(), Box<dyn Error>> {
     
     Ok(())
 }
-
