@@ -1,9 +1,14 @@
+use clap::Parser;
 use rand::Rng;
 use serde::{Deserialize, Serialize};
 use std::fs;
 use std::error::Error;
 
+#[derive(Parser)]
+#[command(author, version, about, long_about = None)]
 pub struct Config {
+    /// File path for the JSON quotes file
+    #[arg(short, long = "file", value_name = "FILE")]
     pub file_path: String,
 }
 
