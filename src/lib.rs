@@ -4,20 +4,24 @@ use serde::{Deserialize, Serialize};
 use std::error::Error;
 use std::fs;
 
-#[derive(Parser)]
+#[derive(Debug, Parser)]
 #[command(author, version, about, long_about = None)]
 pub struct Config {
     /// File path for the JSON quotes file
     #[arg(short, long = "file", value_name = "FILE")]
     pub file_path: String,
 
-    /// Tag for quotes you'd like to see
+    /// Pick a random quote from the Tag you'd like to see
     #[arg(short, long = "tag", value_name = "TAG")]
     pub tag: Option<String>,
+
+    /// Show all quotes
+    #[arg(short, long = "all", value_name = "ALL")]
+    pub all: bool,
 }
 
-#[derive(Clone, Debug, Deserialize, PartialEq, Serialize)]
-struct Quote {
+#[derive(Clone, Debug, Deserialize, Eq, PartialEq, Serialize)]
+pub struct Quote {
     quote: String,
     author: String,
     tags: Vec<String>,
@@ -29,28 +33,33 @@ struct AllQuotes {
 }
 
 impl Quote {
-    pub fn print_quote(&self) -> String {
+    pub fn get_quote(&self) -> String {
         if self.quote.is_empty() {
-            return "No matches for your tag".to_string();
+            return "Quote missing.".to_string();
         }
-        if !self.author.is_empty() {
-            return format!("{} - {}", self.quote, self.author);
+        
+        if self.author.is_empty() {
+            self.quote.to_string()
+        } else {
+            format!("{} - {}", self.quote, self.author)
         }
-        self.quote.to_string()
     }
 }
 
-fn get_quotes(
-    contents: &str,
-    tag: &Option<String>,
-) -> Result<Vec<Quote>, serde_json::error::Error> {
-    let all_quotes: AllQuotes = serde_json::from_str(contents)?;
+fn get_quotes(config: Config) -> Result<Vec<Quote>, Box<dyn Error>> {
+    let contents: String = fs::read_to_string(config.file_path)?;
+    let all_quotes: AllQuotes = serde_json::from_str(&contents)?;
 
     let quotes: Vec<Quote> = all_quotes.quotes;
+
+    if config.all {
+        return Ok(quotes);
+    }
+    
     let mut final_quotes: Vec<Quote> = vec![];
 
-    if tag.is_some() {
-        let tag: &String = &tag.as_ref().unwrap().to_lowercase();
+    if config.tag.is_some() {
+        let tag: &String = &config.tag.as_ref().unwrap().to_lowercase();
 
         for quote in quotes.iter() {
             for t in &quote.tags {
@@ -65,27 +74,34 @@ fn get_quotes(
     }
 }
 
-pub fn run(config: Config) -> Result<(), Box<dyn Error>> {
-    let contents: String = fs::read_to_string(config.file_path)?;
+pub fn print_quotes(quotes: Vec<Quote>, all: bool) {
     let mut rng = rand::thread_rng();
+    
+    if quotes.is_empty() {
+        println!(
+            "Selected Tag returned no matching quotes." 
+        );
+    } else if all{
+        for quote in quotes {
+            println!("{}", quote.get_quote());
+            println!("\n");
+        }
+    } else {
+        println!("{}", quotes[rng.gen_range(0..quotes.len())].get_quote());
+    }
+}
 
-    let quotes = get_quotes(&contents, &config.tag).unwrap_or_else(|e| {
+pub fn run(config: Config) -> Result<(), Box<dyn Error>> {
+
+    let show_all_quoates = config.all;
+    let quotes = get_quotes(config).unwrap_or_else(|e| {
         eprintln!(
-            "Invalid JSON file format.\nJSON: {}\nError: {}",
-            contents, e
+            "Invalid JSON file.\nError: {}", e
         );
         std::process::exit(1);
     });
 
-    if quotes.is_empty() {
-        println!(
-            "Selected Tag {:?} returned no matching quotes",
-            &config.tag.unwrap()
-        );
-    } else {
-        println!("{:?}", quotes[rng.gen_range(0..quotes.len())].print_quote());
-    }
-
+    print_quotes(quotes, show_all_quoates);
     Ok(())
 }
 
@@ -104,9 +120,9 @@ mod tests {
             "#;
 
         let quote: Quote = serde_json::from_str(correct_json).unwrap();
-        let printed_json = "Mindset is everything - unknown";
+        let printed_json = "Mindset is everything";
 
-        assert_eq!(quote.print_quote(), printed_json);
+        assert_eq!(quote.get_quote(), printed_json);
     }
 
     #[test]
@@ -129,10 +145,10 @@ mod tests {
             "#;
 
         let tags = &Some(String::from("Motivational"));
-        let quote = get_quotes(correct_json, tags).unwrap();
+        let quote = get_quotes(correct_json, tags, false).unwrap();
         let printed_json = "Mindset is everything";
 
-        assert_eq!(printed_json, quote[0].print_quote());
+        assert_eq!(printed_json, quote[0].get_quote());
     }
 
     #[test]
@@ -140,7 +156,10 @@ mod tests {
         let empty_json = r#""#;
 
         let tags = &Some(String::from(""));
-        let quote = get_quotes(empty_json, tags).err().unwrap().to_string();
+        let quote = get_quotes(empty_json, tags, false)
+            .err()
+            .unwrap()
+            .to_string();
         let printed_error = "EOF while parsing a value at line 1 column 0";
 
         assert_eq!(quote, printed_error);
@@ -151,9 +170,15 @@ mod tests {
         let malformed_json = r#";"#;
 
         let tags = &Some(String::from(""));
-        let quote = get_quotes(malformed_json, tags).is_err();
+        let quote = get_quotes(malformed_json, tags, false).is_err();
 
         assert!(quote, "true");
+    }
+
+    #[test]
+    fn verify_cli() {
+        use clap::CommandFactory;
+        Config::command().debug_assert()
     }
 
     // ToDo: write test for json with missing 'quote' field
