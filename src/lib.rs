@@ -1,4 +1,3 @@
-use assert_json::assert_json;
 use clap::Parser;
 use rand::Rng;
 use serde::{Deserialize, Serialize};
@@ -45,25 +44,17 @@ fn get_quotes(
     contents: &str,
     tag: &Option<String>,
 ) -> Result<Vec<Quote>, serde_json::error::Error> {
-    // let all_quotes: AllQuotes = serde_json::from_str(contents).unwrap_or_else(|e| {
-    //     eprintln!(
-    //         "Invalid JSON file format.\nJSON: {}\nError: {}",
-    //         contents, e
-    //     );
-    //     std::process::exit(1);
-    // });
-
     let all_quotes: AllQuotes = serde_json::from_str(contents)?;
 
     let quotes: Vec<Quote> = all_quotes.quotes;
     let mut final_quotes: Vec<Quote> = vec![];
 
     if tag.is_some() {
-        let tag: &String = tag.as_ref().unwrap();
+        let tag: &String = &tag.as_ref().unwrap().to_lowercase();
 
         for quote in quotes.iter() {
             for t in &quote.tags {
-                if t.contains(tag) {
+                if t.to_lowercase().eq(tag) {
                     final_quotes.push(quote.clone());
                 }
             }
@@ -80,14 +71,17 @@ pub fn run(config: Config) -> Result<(), Box<dyn Error>> {
 
     let quotes = get_quotes(&contents, &config.tag).unwrap_or_else(|e| {
         eprintln!(
-             "Invalid JSON file format.\nJSON: {}\nError: {}",
-             contents, e
+            "Invalid JSON file format.\nJSON: {}\nError: {}",
+            contents, e
         );
         std::process::exit(1);
     });
 
     if quotes.is_empty() {
-        println!("Selected Tag returned no matching quotes");
+        println!(
+            "Selected Tag {:?} returned no matching quotes",
+            &config.tag.unwrap()
+        );
     } else {
         println!("{:?}", quotes[rng.gen_range(0..quotes.len())].print_quote());
     }
@@ -100,30 +94,7 @@ mod tests {
     use super::*;
 
     #[test]
-    fn correct_json_quote_format() {
-        let correct_json = r#"
-                {
-                    "quote": "Mindset is everything",
-                    "author": "unknown",
-                    "tags": ["Motivational", "Positivity"]
-                }
-            "#;
-
-        let quote = "Mindset is everything";
-        let author = "unknown";
-
-        assert_json!(correct_json, {
-            "quote": quote,
-            "author": author,
-            "tags": [
-                "Motivational",
-                "Positivity"
-            ]
-        });
-    }
-
-    #[test]
-    fn print_json() {
+    fn print_quote_from_valid_json() {
         let correct_json = r#"
                 {
                     "quote": "Mindset is everything",
