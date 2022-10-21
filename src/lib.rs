@@ -93,7 +93,7 @@ pub fn print_quotes(quotes: Vec<Quote>, all: bool) {
 
 pub fn run(config: Config) -> Result<(), Box<dyn Error>> {
 
-    let show_all_quoates = config.all;
+    let show_all_quotes = config.all;
     let quotes = get_quotes(config).unwrap_or_else(|e| {
         eprintln!(
             "Invalid JSON file.\nError: {}", e
@@ -101,7 +101,7 @@ pub fn run(config: Config) -> Result<(), Box<dyn Error>> {
         std::process::exit(1);
     });
 
-    print_quotes(quotes, show_all_quoates);
+    print_quotes(quotes, show_all_quotes);
     Ok(())
 }
 

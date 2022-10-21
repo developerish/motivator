@@ -1,6 +1,9 @@
 # motivator
 
-Creates motivation++ by displaying random quote from a JSON file.
+Indulge in some motivation++ via random quote(s) from a JSON file.
 
 ### Usage
-motivator <JSON filename>
+
+motivator -f <JSON filename>
+
+motivator -h
