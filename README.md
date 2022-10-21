@@ -2,8 +2,10 @@
 
 Indulge in some motivation++ via random quote(s) from a JSON file.
 
-### Usage
+## Quick Start
 
-motivator -f <JSON filename>
+`cargo build --release`
 
-motivator -h
+`./target/release/motivator -f <JSON filename>`
+
+See`./target/release/motivator -h` for a full list of command-line options.
