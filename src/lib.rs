@@ -126,6 +126,22 @@ mod tests {
     }
 
     #[test]
+    fn alert_empty_quote() {
+        let correct_json = r#"
+                {
+                    "quote": "",
+                    "author": "",
+                    "tags": [""]
+                }
+            "#;
+
+        let quote: Quote = serde_json::from_str(correct_json).unwrap();
+        let printed_json = "<Quote missing.>";
+
+        assert_eq!(quote.get_quote(), printed_json);
+    }
+
+    #[test]
     fn verify_cli() {
         use clap::CommandFactory;
         Config::command().debug_assert()
