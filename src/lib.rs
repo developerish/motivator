@@ -35,7 +35,7 @@ struct AllQuotes {
 impl Quote {
     pub fn get_quote(&self) -> String {
         if self.quote.is_empty() {
-            return "Quote missing.".to_string();
+            return "<Quote missing.>".to_string();
         }
         
         if self.author.is_empty() {
@@ -74,14 +74,14 @@ fn get_quotes(config: Config) -> Result<Vec<Quote>, Box<dyn Error>> {
     }
 }
 
-pub fn print_quotes(quotes: Vec<Quote>, all: bool) {
+pub fn print_quotes(quotes: Vec<Quote>, show_all_quotes: bool) {
     let mut rng = rand::thread_rng();
     
     if quotes.is_empty() {
         println!(
             "Selected Tag returned no matching quotes." 
         );
-    } else if all{
+    } else if show_all_quotes{
         for quote in quotes {
             println!("{}", quote.get_quote());
             println!("\n");
@@ -125,77 +125,9 @@ mod tests {
         assert_eq!(quote.get_quote(), printed_json);
     }
 
-    // #[test]
-    // fn check_json_file_format() {
-    //     let correct_json = r#"
-    //             {
-    //               "quotes": [
-    //                 {
-    //                   "quote": "Mindset is everything",
-    //                   "author": "",
-    //                   "tags": ["Motivational", "Positivity"]
-    //                 },
-    //                 {
-    //                   "quote": "You will never reach your destination if you stop and throw stones at every dog that barks",
-    //                   "author": "Winston Churchill",
-    //                   "tags": ["Stoic"]
-    //                 }
-    //               ]
-    //             }
-    //         "#;
-    //
-    //     let tags = &Some(String::from("Motivational"));
-    //     let config = Config {
-    //         file_path: correct_json.to_string(),
-    //         tag: tags.to_owned(),
-    //         all: false,
-    //     };
-    //     let quote = get_quotes(config).unwrap();
-    //     let printed_json = "Mindset is everything";
-    //
-    //     assert_eq!(printed_json, quote[0].get_quote());
-    // }
-
-    // #[test]
-    // fn check_empty_file() {
-    //     let empty_json = r#""#;
-    //
-    //     let tags = &Some(String::from(""));
-    //     let config = Config {
-    //         file_path: empty_json.to_string(),
-    //         tag: tags.to_owned(),
-    //         all: false,
-    //     };
-    //     let quote = get_quotes(config)
-    //         .err()
-    //         .unwrap()
-    //         .to_string();
-    //     println!("{}", quote);
-    //     let printed_error = "EOF while parsing a value at line 1 column 0";
-    //
-    //     assert_eq!(quote, printed_error);
-    // }
-
-    #[test]
-    fn check_malformed_file() {
-        let malformed_json = r#";"#;
-        let tags = &Some(String::from(""));
-        
-        let config = Config {
-            file_path: malformed_json.to_string(),
-            tag: tags.to_owned(),
-            all: false,
-        };
-        let quote = get_quotes(config).is_err();
-
-        assert!(quote, "true");
-    }
-
     #[test]
     fn verify_cli() {
         use clap::CommandFactory;
         Config::command().debug_assert()
     }
-
-    // ToDo: write test for json with missing 'quote' field
 }
