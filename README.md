@@ -6,13 +6,13 @@ Indulge in some motivation++ via random quote(s) from a JSON file.
 
 ### Download and install from crates.io
 
-`cargo install motivator`
+`❯ cargo install motivator`
 
 ### Install from source
 
-`cargo build --release`
+`❯ cargo build --release`
 
-`./target/release/motivator -f <JSON filename>`
+`❯ ./target/release/motivator -f <JSON filename>`
 
 ### Example usage:
 ```
