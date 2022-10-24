@@ -1,4 +1,4 @@
-# motivator
+# Motivator
 
 Indulge in some motivation++ via random quote(s) from a JSON file.
 
@@ -6,8 +6,7 @@ Indulge in some motivation++ via random quote(s) from a JSON file.
 
 ### Download and install from crates.io
 
-cargo install motivator
-
+`cargo install motivator`
 
 ### Install from source
 
