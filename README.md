@@ -53,6 +53,6 @@ Options:
 }
 ```
 
-## Sample JSON file
+#### Sample JSON file
 
 `https://github.com/developerish/motivator/blob/main/quotes.json`
