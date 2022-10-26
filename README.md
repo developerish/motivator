@@ -34,3 +34,20 @@ Options:
   -h, --help         Print help information
   -V, --version      Print version information
   ```
+
+### JSON file format
+
+{
+"quotes": [
+  {
+    "quote": "Motivational words",
+    "author": "",
+    "tags": ["Stoic", "Positivity"]
+  }
+ ]
+}
+```
+
+## Sample JSON file
+
+`https://github.com/developerish/motivator/blob/main/quotes.json`

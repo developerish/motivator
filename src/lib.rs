@@ -37,7 +37,7 @@ impl Quote {
         if self.quote.is_empty() {
             return "<Quote missing.>".to_string();
         }
-        
+
         if self.author.is_empty() {
             self.quote.to_string()
         } else {
@@ -55,19 +55,19 @@ fn get_quotes(config: Config) -> Result<Vec<Quote>, Box<dyn Error>> {
     if config.all {
         return Ok(quotes);
     }
-    
+
     let mut final_quotes: Vec<Quote> = vec![];
 
     if config.tag.is_some() {
         let tag: &String = &config.tag.as_ref().unwrap().to_lowercase();
 
-        for quote in quotes.iter() {
-            for t in &quote.tags {
+        quotes.iter().for_each(|quote| {
+            quote.tags.iter().for_each(|t| {
                 if t.to_lowercase().eq(tag) {
                     final_quotes.push(quote.clone());
                 }
-            }
-        }
+            });
+        });
         Ok(final_quotes)
     } else {
         Ok(quotes)
@@ -76,12 +76,10 @@ fn get_quotes(config: Config) -> Result<Vec<Quote>, Box<dyn Error>> {
 
 pub fn print_quotes(quotes: Vec<Quote>, show_all_quotes: bool) {
     let mut rng = rand::thread_rng();
-    
+
     if quotes.is_empty() {
-        println!(
-            "Selected Tag returned no matching quotes." 
-        );
-    } else if show_all_quotes{
+        println!("Selected Tag returned no matching quotes.");
+    } else if show_all_quotes {
         for quote in quotes {
             println!("{}", quote.get_quote());
             println!("\n");
@@ -92,12 +90,9 @@ pub fn print_quotes(quotes: Vec<Quote>, show_all_quotes: bool) {
 }
 
 pub fn run(config: Config) -> Result<(), Box<dyn Error>> {
-
     let show_all_quotes = config.all;
     let quotes = get_quotes(config).unwrap_or_else(|e| {
-        eprintln!(
-            "Invalid JSON file.\nError: {}", e
-        );
+        eprintln!("Invalid JSON file.\nError: {}", e);
         std::process::exit(1);
     });
 
