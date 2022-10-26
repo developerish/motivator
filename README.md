@@ -15,9 +15,13 @@ Indulge in some motivation++ via random quote(s) from a JSON file.
 `❯ ./target/release/motivator -f <JSON filename>`
 
 ### Example usage:
+
 ```
 ❯ motivator -f quotes.json
 Whether you think you can or think you can't, you're right. - Henry Ford
+
+❯ motivator -f quotes.json -t stoic
+Wants make you a servant - Seneca
 ```
 For a full list of command-line options:
 
@@ -33,10 +37,11 @@ Options:
   -a, --all          Show all quotes
   -h, --help         Print help information
   -V, --version      Print version information
-  ```
+```
 
 ### JSON file format
 
+```
 {
 "quotes": [
   {
