@@ -6,6 +6,7 @@ use std::fs;
 
 #[derive(Debug, Parser)]
 #[command(author, version, about, long_about = None)]
+/// Struct to define command line parameters
 pub struct Config {
     /// File path for the JSON quotes file
     #[arg(short, long = "file", value_name = "FILE")]
@@ -21,6 +22,7 @@ pub struct Config {
 }
 
 #[derive(Clone, Debug, Deserialize, Eq, PartialEq, Serialize)]
+/// Struct to define the body of a quote
 pub struct Quote {
     quote: String,
     author: String,
@@ -28,11 +30,14 @@ pub struct Quote {
 }
 
 #[derive(Debug, Deserialize, Serialize)]
+/// Struct to hold all quotes read from the input file
 struct AllQuotes {
     quotes: Vec<Quote>,
 }
 
 impl Quote {
+    /// Returns a formated string with quote and it's author or a informative message if the quote
+    /// is empty
     pub fn get_quote(&self) -> String {
         if self.quote.is_empty() {
             return "<Quote missing.>".to_string();
@@ -46,6 +51,7 @@ impl Quote {
     }
 }
 
+/// Return a vector of quotes
 fn get_quotes(config: Config) -> Result<Vec<Quote>, Box<dyn Error>> {
     let contents: String = fs::read_to_string(config.file_path)?;
     let all_quotes: AllQuotes = serde_json::from_str(&contents)?;
@@ -74,6 +80,7 @@ fn get_quotes(config: Config) -> Result<Vec<Quote>, Box<dyn Error>> {
     }
 }
 
+/// Print individual quote(s) from the Quote vector
 pub fn print_quotes(quotes: Vec<Quote>, show_all_quotes: bool) {
     let mut rng = rand::thread_rng();
 
@@ -89,6 +96,7 @@ pub fn print_quotes(quotes: Vec<Quote>, show_all_quotes: bool) {
     }
 }
 
+/// Take the config and call relevant functions to print the quote(s)
 pub fn run(config: Config) -> Result<(), Box<dyn Error>> {
     let show_all_quotes = config.all;
     let quotes = get_quotes(config).unwrap_or_else(|e| {
