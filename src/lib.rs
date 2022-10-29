@@ -2,6 +2,7 @@ use clap::Parser;
 use rand::Rng;
 use serde::{Deserialize, Serialize};
 use std::error::Error;
+use std::fmt::Display;
 use std::fs;
 
 #[derive(Debug, Parser)]
@@ -35,18 +36,16 @@ struct AllQuotes {
     quotes: Vec<Quote>,
 }
 
-impl Quote {
-    /// Returns a formated string with quote and it's author or a informative message if the quote
-    /// is empty
-    pub fn get_quote(&self) -> String {
+impl Display for Quote {
+    fn fmt(&self, fmt: &mut std::fmt::Formatter) -> Result<(), std::fmt::Error> {
         if self.quote.is_empty() {
-            return "<Quote missing.>".to_string();
+            return write!(fmt, "<Quote missing.>");
         }
 
         if self.author.is_empty() {
-            self.quote.to_string()
+            write!(fmt, "{}", self.quote)
         } else {
-            format!("{} - {}", self.quote, self.author)
+            write!(fmt, "{} - {}", self.quote, self.author)
         }
     }
 }
@@ -87,12 +86,10 @@ pub fn print_quotes(quotes: Vec<Quote>, show_all_quotes: bool) {
     if quotes.is_empty() {
         println!("Selected Tag returned no matching quotes.");
     } else if show_all_quotes {
-        for quote in quotes {
-            println!("{}", quote.get_quote());
-            println!("\n");
-        }
+        quotes.iter().for_each(|q| println!("{}\n", q));
     } else {
-        println!("{}", quotes[rng.gen_range(0..quotes.len())].get_quote());
+        // println!("{}", quotes[rng.gen_range(0..quotes.len())].get_quote());
+        println!("{}", quotes[rng.gen_range(0..quotes.len())]);
     }
 }
 
@@ -125,7 +122,7 @@ mod tests {
         let quote: Quote = serde_json::from_str(correct_json).unwrap();
         let printed_json = "Mindset is everything - unknown";
 
-        assert_eq!(quote.get_quote(), printed_json);
+        assert_eq!(quote.to_string(), printed_json);
     }
 
     #[test]
@@ -141,7 +138,7 @@ mod tests {
         let quote: Quote = serde_json::from_str(correct_json).unwrap();
         let printed_json = "<Quote missing.>";
 
-        assert_eq!(quote.get_quote(), printed_json);
+        assert_eq!(quote.to_string(), printed_json);
     }
 
     #[test]
