@@ -17,6 +17,14 @@ Indulge in some motivation++ via random quote(s) from a JSON file.
 ### Example usage:
 
 ```
+❯ motivator -f
+--------
+<Quotes file not provided. Showing a random quote from buil-in file.>
+run 'motivator -h' for more options.
+--------
+
+A smooth sea never made a skillful mariner
+
 ❯ motivator -f quotes.json
 Whether you think you can or think you can't, you're right. - Henry Ford
 
@@ -27,9 +35,9 @@ For a full list of command-line options:
 
 ```
 ❯ motivator -h
-Indulge in some motivation++ via random quote(s) from a JSON file.
+Indulge in some motivation++ via random quote(s).
 
-Usage: motivator [OPTIONS] --file <FILE>
+Usage: motivator [OPTIONS]
 
 Options:
   -f, --file <FILE>  File path for the JSON quotes file
@@ -53,6 +61,6 @@ Options:
 }
 ```
 
-#### Sample JSON file
+#### Sample quotes file
 
 [https://github.com/developerish/motivator/blob/main/quotes.json](https://github.com/developerish/motivator/blob/main/quotes.json)
