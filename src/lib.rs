@@ -1,9 +1,7 @@
 use clap::Parser;
 use rand::Rng;
 use serde::{Deserialize, Serialize};
-use std::error::Error;
-use std::fmt::Display;
-use std::fs;
+use std::{error::Error, fmt::Display, fs};
 
 #[derive(Debug, Parser)]
 #[command(author, version, about, long_about = None)]
@@ -64,11 +62,11 @@ fn get_quotes(config: Config) -> Result<Vec<Quote>, Box<dyn Error>> {
     let mut final_quotes: Vec<Quote> = vec![];
 
     if config.tag.is_some() {
-        let tag: &String = &config.tag.as_ref().unwrap().to_lowercase();
+        let user_tag: &String = &config.tag.as_ref().unwrap().to_lowercase();
 
         quotes.iter().for_each(|quote| {
             quote.tags.iter().for_each(|t| {
-                if t.to_lowercase().eq(tag) {
+                if t.to_lowercase().eq(user_tag) {
                     final_quotes.push(quote.clone());
                 }
             });
