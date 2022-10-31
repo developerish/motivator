@@ -17,11 +17,13 @@ fn file_doesnt_exist() -> Result<(), Box<dyn std::error::Error>> {
 #[test]
 fn tag_doesnt_exist() -> Result<(), Box<dyn std::error::Error>> {
     let mut cmd = Command::cargo_bin("motivator")?;
-    cmd.arg("-f").arg("quotes.json")
-        .arg("-t").arg("");
-    cmd.assert()
-        .success()
-        .stdout(predicate::str::contains("Selected Tag returned no matching quotes."));
+    cmd.arg("-f")
+        .arg("quotes.json")
+        .arg("-t")
+        .arg("random_tag_123");
+    cmd.assert().success().stdout(predicate::str::contains(
+        "Selected Tag returned no matching quotes.",
+    ));
 
     Ok(())
 }
@@ -44,7 +46,8 @@ fn check_empty_file() -> Result<(), Box<dyn std::error::Error>> {
 fn check_json_format() -> Result<(), Box<dyn std::error::Error>> {
     let file = assert_fs::NamedTempFile::new("temp.json")?;
     // missing ending " for 'quotes'
-    file.write_str(r#"{
+    file.write_str(
+        r#"{
                   "quotes: [
                     {
                       "quote": "Mindset is everything",
@@ -53,7 +56,8 @@ fn check_json_format() -> Result<(), Box<dyn std::error::Error>> {
                     }
                   ]
                 }
-                "#)?;
+                "#,
+    )?;
 
     let mut cmd = Command::cargo_bin("motivator")?;
     cmd.arg("-f").arg(file.path());

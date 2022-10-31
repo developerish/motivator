@@ -3,13 +3,15 @@ use rand::Rng;
 use serde::{Deserialize, Serialize};
 use std::{error::Error, fmt::Display, fs};
 
+const PACKAGED_QUOTES_FILE_PATH: &str = "quotes.json";
+
 #[derive(Debug, Parser)]
 #[command(author, version, about, long_about = None)]
 /// Struct to define command line parameters
 pub struct Config {
     /// File path for the JSON quotes file
     #[arg(short, long = "file", value_name = "FILE")]
-    pub file_path: String,
+    pub file_path: Option<String>,
 
     /// Pick a random quote from the Tag you'd like to see
     #[arg(short, long = "tag", value_name = "TAG")]
@@ -17,7 +19,7 @@ pub struct Config {
 
     /// Show all quotes
     #[arg(short, long = "all", value_name = "ALL")]
-    pub all: bool,
+    pub show_all: bool,
 }
 
 #[derive(Clone, Debug, Deserialize, Eq, PartialEq, Serialize)]
@@ -49,20 +51,24 @@ impl Display for Quote {
 }
 
 /// Return a vector of quotes
-fn get_quotes(config: Config) -> Result<Vec<Quote>, Box<dyn Error>> {
-    let contents: String = fs::read_to_string(config.file_path)?;
+fn get_quotes(
+    file_path: String,
+    tag: String,
+    show_all: bool,
+) -> Result<Vec<Quote>, Box<dyn Error>> {
+    let contents: String = fs::read_to_string(file_path)?;
     let all_quotes: AllQuotes = serde_json::from_str(&contents)?;
 
     let quotes: Vec<Quote> = all_quotes.quotes;
 
-    if config.all {
+    if show_all {
         return Ok(quotes);
     }
 
     let mut final_quotes: Vec<Quote> = vec![];
 
-    if config.tag.is_some() {
-        let user_tag: &String = &config.tag.as_ref().unwrap().to_lowercase();
+    if !tag.is_empty() {
+        let user_tag: &String = &tag.to_lowercase();
 
         quotes.iter().for_each(|quote| {
             quote.tags.iter().for_each(|t| {
@@ -78,7 +84,7 @@ fn get_quotes(config: Config) -> Result<Vec<Quote>, Box<dyn Error>> {
 }
 
 /// Print individual quote(s) from the Quote vector
-pub fn print_quotes(quotes: Vec<Quote>, show_all_quotes: bool) {
+fn print_quotes(quotes: Vec<Quote>, show_all_quotes: bool) {
     let mut rng = rand::thread_rng();
 
     if quotes.is_empty() {
@@ -91,10 +97,33 @@ pub fn print_quotes(quotes: Vec<Quote>, show_all_quotes: bool) {
     }
 }
 
+fn get_file_name(f: Option<String>) -> String {
+    match f {
+        Some(f) => f,
+        _ => {
+            println!("--------");
+            println!("<Quotes file not provided. Showing a random quote from buil-in file.>");
+            println!("run 'motivator -h' for more options.");
+            println!("--------\n");
+            return String::from(PACKAGED_QUOTES_FILE_PATH);
+        }
+    }
+}
+
+fn get_tag(t: Option<String>) -> String {
+    match t {
+        Some(t) => t,
+        _ => String::from(""),
+    }
+}
+
 /// Take the config and call relevant functions to print the quote(s)
 pub fn run(config: Config) -> Result<(), Box<dyn Error>> {
-    let show_all_quotes = config.all;
-    let quotes = get_quotes(config).unwrap_or_else(|e| {
+    let quotes_file = get_file_name(config.file_path);
+    let tag = get_tag(config.tag);
+    let show_all_quotes = config.show_all;
+
+    let quotes = get_quotes(quotes_file, tag, show_all_quotes).unwrap_or_else(|e| {
         eprintln!("Invalid JSON file.\nError: {}", e);
         std::process::exit(1);
     });
@@ -137,6 +166,11 @@ mod tests {
         let printed_json = "<Quote missing.>";
 
         assert_eq!(quote.to_string(), printed_json);
+    }
+
+    #[test]
+    fn get_default_file() {
+        assert_eq!(get_file_name(None), String::from(PACKAGED_QUOTES_FILE_PATH));
     }
 
     #[test]
