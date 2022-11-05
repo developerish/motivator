@@ -1,9 +1,9 @@
+pub mod quotes;
+
+use crate::quotes::{AllQuotes, Quote};
 use clap::Parser;
 use rand::Rng;
-use serde::{Deserialize, Serialize};
-use std::{error::Error, fmt::Display, fs};
-
-const PACKAGED_QUOTES_FILE_PATH: &str = "quotes.json";
+use std::{error::Error, fs};
 
 #[derive(Debug, Parser)]
 #[command(author, version, about, long_about = None)]
@@ -22,41 +22,14 @@ pub struct Config {
     pub show_all: bool,
 }
 
-#[derive(Clone, Debug, Deserialize, Eq, PartialEq, Serialize)]
-/// Struct to define the body of a quote
-pub struct Quote {
-    quote: String,
-    author: String,
-    tags: Vec<String>,
-}
-
-#[derive(Debug, Deserialize, Serialize)]
-/// Struct to hold all quotes read from the input file
-struct AllQuotes {
-    quotes: Vec<Quote>,
-}
-
-impl Display for Quote {
-    fn fmt(&self, fmt: &mut std::fmt::Formatter) -> Result<(), std::fmt::Error> {
-        if self.quote.is_empty() {
-            return write!(fmt, "<Quote missing.>");
-        }
-
-        if self.author.is_empty() {
-            write!(fmt, "{}", self.quote)
-        } else {
-            write!(fmt, "{} - {}", self.quote, self.author)
-        }
-    }
-}
-
 /// Return a vector of quotes
 fn get_quotes(
     file_path: String,
     tag: String,
     show_all: bool,
 ) -> Result<Vec<Quote>, Box<dyn Error>> {
-    let contents: String = fs::read_to_string(file_path)?;
+    // file_path is either a user provided file or a built-in qupte from get_file_name method
+    let contents: String = fs::read_to_string(&file_path).unwrap_or(file_path.to_owned());
     let all_quotes: AllQuotes = serde_json::from_str(&contents)?;
 
     let quotes: Vec<Quote> = all_quotes.quotes;
@@ -102,25 +75,21 @@ fn get_file_name(f: Option<String>) -> String {
         Some(f) => f,
         _ => {
             println!("--------");
-            println!("<Quotes file not provided. Showing a random quote from buil-in file.>");
+            println!("<Quotes file not provided. Showing a random quote from built-in quotes.>");
             println!("run 'motivator -h' for more options.");
             println!("--------\n");
-            return String::from(PACKAGED_QUOTES_FILE_PATH);
+            return Quote::built_in_quotes();
         }
-    }
-}
-
-fn get_tag(t: Option<String>) -> String {
-    match t {
-        Some(t) => t,
-        _ => String::from(""),
     }
 }
 
 /// Take the config and call relevant functions to print the quote(s)
 pub fn run(config: Config) -> Result<(), Box<dyn Error>> {
     let quotes_file = get_file_name(config.file_path);
-    let tag = get_tag(config.tag);
+    let tag = match config.tag {
+        Some(tag) => tag,
+        _ => String::from(""),
+    };
     let show_all_quotes = config.show_all;
 
     let quotes = get_quotes(quotes_file, tag, show_all_quotes).unwrap_or_else(|e| {
@@ -166,11 +135,6 @@ mod tests {
         let printed_json = "<Quote missing.>";
 
         assert_eq!(quote.to_string(), printed_json);
-    }
-
-    #[test]
-    fn get_default_file() {
-        assert_eq!(get_file_name(None), String::from(PACKAGED_QUOTES_FILE_PATH));
     }
 
     #[test]
