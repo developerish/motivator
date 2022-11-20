@@ -20,6 +20,10 @@ pub struct Config {
     /// Show all quotes
     #[arg(short, long = "all", value_name = "ALL")]
     pub show_all: bool,
+
+    /// Suppress default message
+    #[arg(short, long = "quiet", value_name = "QUIET")]
+    pub quiet_output: bool,
 }
 
 /// Return a vector of quotes
@@ -57,12 +61,19 @@ fn get_quotes(
 }
 
 /// Print individual quote(s) from the Quote vector
-fn print_quotes(quotes: Vec<Quote>, show_all_quotes: bool) {
+fn print_quotes(quotes: Vec<Quote>, config: &Config) {
     let mut rng = rand::thread_rng();
+
+    if config.file_path.is_none() && !config.quiet_output {
+        println!("--------");
+        println!("<Quotes file not provided. Showing a random quote from built-in quotes.>");
+        println!("run 'motivator -h' for more options.");
+        println!("--------\n");
+    }
 
     if quotes.is_empty() {
         println!("Selected Tag returned no matching quotes.");
-    } else if show_all_quotes {
+    } else if config.show_all {
         quotes.iter().for_each(|q| println!("{}\n", q));
     } else {
         // println!("{}", quotes[rng.gen_range(0..quotes.len())].get_quote());
@@ -70,14 +81,10 @@ fn print_quotes(quotes: Vec<Quote>, show_all_quotes: bool) {
     }
 }
 
-fn get_file_name(f: Option<String>) -> String {
+fn get_file_name(f: &Option<String>) -> String {
     match f {
-        Some(f) => f,
+        Some(f) => f.to_string(),
         _ => {
-            println!("--------");
-            println!("<Quotes file not provided. Showing a random quote from built-in quotes.>");
-            println!("run 'motivator -h' for more options.");
-            println!("--------\n");
             return Quote::built_in_quotes();
         }
     }
@@ -85,9 +92,9 @@ fn get_file_name(f: Option<String>) -> String {
 
 /// Take the config and call relevant functions to print the quote(s)
 pub fn run(config: Config) -> Result<(), Box<dyn Error>> {
-    let quotes_file = get_file_name(config.file_path);
-    let tag = match config.tag {
-        Some(tag) => tag,
+    let quotes_file = get_file_name(&config.file_path);
+    let tag = match &config.tag {
+        Some(tag) => tag.to_string(),
         _ => String::from(""),
     };
     let show_all_quotes = config.show_all;
@@ -97,7 +104,7 @@ pub fn run(config: Config) -> Result<(), Box<dyn Error>> {
         std::process::exit(1);
     });
 
-    print_quotes(quotes, show_all_quotes);
+    print_quotes(quotes, &config);
     Ok(())
 }
 
